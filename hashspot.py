@@ -1,5 +1,9 @@
 import os
-os.system('cls' if os.name == 'nt' else 'clear')
+import os.path
+
+
+def clear():
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 hash_lenghts = {
     4 : ["CRC16"],
@@ -52,11 +56,12 @@ def check_hash(h):
             return "DES Crypt"
     
     else:
-        return hash_lenghts[l]
+        try:
+            return hash_lenghts[l]
+        except:
+            return False
 
-    return "Could not find any possible hashes"
-
-def menu():
+def logo():
     print("""
             ______              
          .-'      `-.           
@@ -81,11 +86,68 @@ def menu():
 \/_/
 
 
+
 """)
 
-def method():
+def menu():
     an = input("""Choose an option:
 
 [1] Check unique hash
 [2] Bulk checking
-[3] Exit""")
+[3] Exit
+
+>> """)
+
+    if an not in ["1", "2", "3"]:
+        input("\nInvalid answer, press enter to continue")
+        clear()
+        logo()
+        menu()
+
+    if an == "1":
+        h = input("\nPlease provide the hash to check: ")
+        result = check_hash(h)
+
+        if result:
+            print(f"Possible results for {h}, in order from the most likely to the less likely:")
+            print(*result, sep = ", ")
+
+    elif an == "2":
+        while True:
+            filename = input("\nPlease provide the name of the text file with the hashes to check: ")
+
+            if not ".txt" in filename:
+                filename += ".txt"
+
+            if os.path.exists(filename):
+                break
+            else:
+                print(f"\n{filename} was not found. Please check the file name. ")
+
+        filenameout = input("\nPlease provide the name of the text file to output the results to: ")
+
+        if not ".txt" in filenameout:
+            filenameout += ".txt"
+
+        with open(filename, "r") as f:
+            hashes = f.readlines()
+            total = len(hashes)
+            count = 0
+
+        with open(filenameout, "a") as f:
+            for h in hashes:
+                result = check_hash(h.strip())
+                if result:
+                    count += 1
+                    f.write(f"</.>\n{h.strip()}\n{result}\n")
+
+        print("\nChecking...")
+        print(f"\nSuccessfully checked {count} of {total} hashes. Results are ordered from most likely to less likely.")
+            
+logo()
+menu()
+
+input("\n\nPress ENTER to go back to the main menu.")
+clear()
+logo()
+menu()
